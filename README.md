@@ -84,8 +84,7 @@ live in memory.
 ## Status and caveats
 
 - Build-order steps 1–5, 7 and 8 are done and tested. Step 6 (deploy) is scripted but not yet run.
-- **`data/etf_prices.csv` is synthetic placeholder data** (market-data sites were blocked in the build
-  sandbox). Run `python scripts/fetch_prices.py` before showing benchmark numbers as real. See `data/README.md`.
+- `data/etf_prices.csv` holds real VTI/BND monthly prices (see `data/README.md`).
 - The agent path is tested with a scripted fake model. Run `scripts/check_endpoint.py` against the
   real endpoint before the demo, and pre-run the demo in case the shared endpoint is slow.
 - The brief asks for inference on "our own Akamai instance". The workshop endpoint runs on Akamai but is
