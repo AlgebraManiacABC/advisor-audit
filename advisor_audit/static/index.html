@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fee Check</title>
+<style>
+:root {
+  --bg: #f7f6f2; --card: #ffffff; --ink: #1d232b; --muted: #5d6773; --line: #e2e0d8;
+  --accent: #1f6f5c; --accent-ink: #ffffff; --warn: #9a5b00; --warn-bg: #fff4e0; --bad: #a33a2a;
+  --bar: #1f6f5c; --bar2: #c9a227; --bar3: #4a78a8; --bar4: #8a8f98; --bar5: #b06b9e;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #14171b; --card: #1d2228; --ink: #e8e6e1; --muted: #a2abb5; --line: #2e353d;
+    --accent: #4fb89c; --accent-ink: #0d1512; --warn: #f0b85c; --warn-bg: #2d2416; --bad: #f08a78; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 1.15rem; margin: 0 0 12px; }
+p { margin: 0 0 10px; }
+.sub { color: var(--muted); margin-bottom: 24px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+label.drop { display: block; border: 2px dashed var(--line); border-radius: 10px; padding: 26px; text-align: center; cursor: pointer; }
+label.drop:hover, label.drop.over { border-color: var(--accent); }
+label.drop input { display: none; }
+.profiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+.profiles label { border: 1px solid var(--line); border-radius: 10px; padding: 12px; cursor: pointer; }
+.profiles input { margin-right: 6px; }
+.profiles small { display: block; color: var(--muted); }
+.profiles label:has(input:checked) { border-color: var(--accent); outline: 1px solid var(--accent); }
+button { font: inherit; border: 0; border-radius: 8px; padding: 10px 18px; cursor: pointer; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+button:disabled { opacity: .55; cursor: wait; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.headline { font-size: 2.6rem; font-weight: 700; color: var(--bad); line-height: 1.1; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0; }
+.kpi { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.kpi b { display: block; font-size: 1.35rem; }
+.kpi span { color: var(--muted); font-size: .9rem; }
+ol.q li { margin-bottom: 10px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+td.n, th.n { text-align: right; }
+.note { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 10px 12px; margin: 10px 0; font-size: .95rem; }
+.muted { color: var(--muted); font-size: .92rem; }
+.bar { display: flex; height: 18px; border-radius: 6px; overflow: hidden; margin: 8px 0 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .92rem; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+.flag { border-left: 4px solid var(--line); padding: 6px 10px; margin: 8px 0; }
+.flag.high { border-color: var(--bad); } .flag.medium { border-color: var(--bar2); } .flag.info { border-color: var(--bar4); }
+.hidden { display: none !important; }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; vertical-align: -3px; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+input[type=text] { font: inherit; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); flex: 1; min-width: 200px; }
+@media (max-width: 560px) { .profiles { grid-template-columns: 1fr; } .headline { font-size: 2.1rem; } table { font-size: .9rem; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Is my advisor worth the fee?</h1>
+  <p class="sub">Upload a statement from your managed account. See what you own, what you paid, and how a low-cost ETF mix did over the same time. This page gives you information, not advice.</p>
+
+  <form id="form" class="card">
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.heic,.webp,.tif,.tiff">
+      <strong id="fileLabel">Choose a statement</strong><br>
+      <span class="muted">PDF, CSV, Excel, or a photo of a paper statement</span>
+    </label>
+    <div class="profiles" role="radiogroup" aria-label="Risk profile">
+      <label><input type="radio" name="risk" value="conservative">Conservative<small>30% stocks / 70% bonds</small></label>
+      <label><input type="radio" name="risk" value="balanced" checked>Balanced<small>60% stocks / 40% bonds</small></label>
+      <label><input type="radio" name="risk" value="growth">Growth<small>90% stocks / 10% bonds</small></label>
+    </div>
+    <div class="row">
+      <button type="submit" id="go">Check my statement</button>
+      <span class="muted" id="status"></span>
+    </div>
+    <p class="muted" style="margin-top:12px">Names, addresses, and account numbers are removed before anything is analyzed. Your file is read in memory and thrown away. Nothing is saved after your session ends.</p>
+  </form>
+
+  <div id="clarify" class="card hidden">
+    <h2>One quick question</h2>
+    <p id="question"></p>
+    <form id="clarifyForm" class="row">
+      <input type="text" id="answer" required placeholder="Your answer">
+      <button type="submit">Continue</button>
+    </form>
+  </div>
+
+  <div id="results" class="hidden"></div>
+
+  <div class="row" style="margin-top:8px">
+    <button class="ghost" id="del" type="button">Delete my data</button>
+    <span class="muted" id="delStatus"></span>
+  </div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const usd = (x) => x == null ? "n/a" : (x < 0 ? "-$" : "$") + Math.abs(x).toLocaleString("en-US", { maximumFractionDigits: 0 });
+const pct = (x, d = 1) => x == null ? "n/a" : (x * 100).toFixed(d) + "%";
+const COLORS = ["var(--bar)", "var(--bar2)", "var(--bar3)", "var(--bar4)", "var(--bar5)"];
+
+$("#file").addEventListener("change", () => { $("#fileLabel").textContent = $("#file").files[0]?.name || "Choose a statement"; });
+const drop = $("#drop");
+["dragover", "dragenter"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((e) => drop.addEventListener(e, () => drop.classList.remove("over")));
+drop.addEventListener("drop", (ev) => { ev.preventDefault(); $("#file").files = ev.dataTransfer.files; $("#file").dispatchEvent(new Event("change")); });
+
+function busy(on, msg) {
+  $("#go").disabled = on;
+  $("#status").innerHTML = on ? `<span class="spinner"></span>${esc(msg)}` : esc(msg || "");
+}
+
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", body, credentials: "same-origin" });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || "Something went wrong. Please try again.");
+  return j;
+}
+
+function handle(j) {
+  $("#clarify").classList.add("hidden");
+  if (j.status === "needs_clarification") {
+    $("#question").textContent = j.question;
+    $("#clarify").classList.remove("hidden");
+    $("#results").classList.add("hidden");
+    busy(false, "");
+    return;
+  }
+  render(j.results);
+  busy(false, "Done.");
+}
+
+$("#form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = $("#file").files[0];
+  if (!f) { busy(false, "Choose a file first."); return; }
+  const fd = new FormData();
+  fd.append("file", f);
+  fd.append("risk_profile", document.querySelector("input[name=risk]:checked").value);
+  busy(true, "Reading your statement. This can take a minute…");
+  try { handle(await post("/api/analyze", fd)); } catch (err) { busy(false, err.message); }
+});
+
+$("#clarifyForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fd = new FormData();
+  fd.append("answer", $("#answer").value);
+  busy(true, "Trying again with your answer…");
+  try { handle(await post("/api/clarify", fd)); } catch (err) { busy(false, err.message); }
+});
+
+document.querySelectorAll("input[name=risk]").forEach((r) => r.addEventListener("change", async () => {
+  if ($("#results").classList.contains("hidden")) return;
+  const fd = new FormData();
+  fd.append("risk_profile", r.value);
+  busy(true, "Updating the comparison…");
+  try { handle(await post("/api/profile", fd)); } catch (err) { busy(false, err.message); }
+}));
+
+$("#del").addEventListener("click", async () => {
+  await fetch("/api/session", { method: "DELETE", credentials: "same-origin" });
+  $("#results").innerHTML = ""; $("#results").classList.add("hidden"); $("#clarify").classList.add("hidden");
+  $("#file").value = ""; $("#fileLabel").textContent = "Choose a statement"; busy(false, "");
+  $("#delStatus").textContent = "Your data has been deleted.";
+});
+
+function render(r) {
+  const p = r.performance, e = r.explanation, c = r.comparison, a = r.allocation;
+  const p10 = r.projection_10, p20 = r.projection_20;
+  let h = "";
+
+  if (r.warnings?.length) h += r.warnings.map((w) => `<div class="note">${esc(w)}</div>`).join("");
+
+  h += `<section class="card"><h2>What you paid</h2>
+    <div class="headline">${usd(p.total_cost)}</div>
+    <p class="muted">in fees and fund costs from ${esc(p.period_start)} to ${esc(p.period_end)}</p>
+    <div class="kpis">
+      <div class="kpi"><b>${usd(p.fees_paid_total)}</b><span>taken from your account (advisory fees${p.fees_paid.load ? ", sales loads" : ""})</span></div>
+      <div class="kpi"><b>${usd(p.estimated_fund_expenses)}</b><span>estimated fund expenses, charged inside fund prices</span></div>
+      <div class="kpi"><b>${usd(p10.total_cost)}</b><span>projected cost over 10 years</span></div>
+      <div class="kpi"><b>${usd(p20.total_cost)}</b><span>projected cost over 20 years</span></div>
+    </div>
+    <p>${esc(e.fees_summary)}</p>
+    <p class="muted">Projections assume ${pct(p10.assumed_annual_growth, 0)} yearly growth, no new deposits, and today's total cost of ${pct(p10.annual_fee_rate, 2)} a year. They include growth the fees would have earned. For comparison, a ${pct(p10.low_cost_comparison.annual_fee_rate, 2)} ETF mix would cost about ${usd(p20.low_cost_comparison.total_cost)} over 20 years.</p>
+  </section>`;
+
+  h += `<section class="card"><h2>Questions to ask your advisor</h2><ol class="q">${e.questions.map((q) => `<li>${esc(q)}</li>`).join("")}</ol></section>`;
+
+  if (c.available) {
+    const b = r.benchmark;
+    h += `<section class="card"><h2>A fair comparison</h2>
+      <p>${esc(e.comparison_summary)}</p>
+      <table><thead><tr><th></th><th class="n">Your account</th><th class="n" title="${esc(b.description)}">Low-cost ETF mix (${Object.values(b.mix).map((w) => Math.round(w * 100)).join("/")})</th></tr></thead><tbody>
+      <tr><td>Return after fees${c.annualized ? " (per year)" : ""}</td><td class="n">${pct(c.account_return)}</td><td class="n">${pct(c.benchmark_return)}</td></tr>
+      <tr><td>Ending value</td><td class="n">${usd(p.ending_balance)}</td><td class="n">${usd(b.ending_value)}</td></tr>
+      <tr><td>Volatility (how much it swings, per year)</td><td class="n">${pct(c.account_volatility)}</td><td class="n">${pct(c.benchmark_volatility)}</td></tr>
+      <tr><td>Largest drop from a high</td><td class="n">${pct(c.account_max_drawdown)}</td><td class="n">${pct(c.benchmark_max_drawdown)}</td></tr>
+      </tbody></table>
+      ${c.notes.map((n) => `<div class="note">${esc(n)}</div>`).join("")}
+      <p class="muted">The ETF mix is ${esc(b.description)}. It starts with your starting balance and gets the same deposits and withdrawals on the same dates.</p>
+    </section>`;
+  } else {
+    h += `<section class="card"><h2>A fair comparison</h2><div class="note">${esc(c.notes.join(" "))}</div></section>`;
+  }
+
+  const classes = Object.values(a.by_class);
+  h += `<section class="card"><h2>What you own</h2>
+    <div class="bar">${classes.map((v, i) => `<div title="${esc(v.label)}" style="width:${v.share * 100}%;background:${COLORS[i % 5]}"></div>`).join("")}</div>
+    <div class="legend">${classes.map((v, i) => `<span><i class="sw" style="background:${COLORS[i % 5]}"></i>${esc(v.label)} ${pct(v.share, 0)} (${usd(v.value)})</span>`).join("")}</div>
+    <p style="margin-top:12px">${esc(e.holdings_summary)}</p></section>`;
+
+  if (r.flags.length) {
+    h += `<section class="card"><h2>Costs worth a look</h2>${r.flags.map((f) => `<div class="flag ${esc(f.severity)}">${esc(f.detail)}${f.annual_cost ? ` <span class="muted">About ${usd(f.annual_cost)} a year.</span>` : ""}</div>`).join("")}</section>`;
+  }
+
+  h += `<section class="card"><h2>What your advisor may be doing right</h2><p>${esc(r.advisor_upside)}</p></section>`;
+  h += `<p class="muted">${esc(r.disclaimer)}</p>`;
+
+  $("#results").innerHTML = h;
+  $("#results").classList.remove("hidden");
+  $("#delStatus").textContent = "";
+  $("#results").scrollIntoView({ behavior: "smooth" });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+Advisory firm,Summit Wealth Partners
+Annual Account Statement
+Account holder,Jordan Avery
+Account number,XXXX-XXXX-4821
+Address,"1428 Maple Grove Ave, Apt 3, Kansas City, MO 64111"
+Your advisor,Dana Whitfield
+Statement period,2025-01-01 to 2025-12-31
+
+Account Summary
+Beginning balance,250000.00
+Deposits,15000.00
+Withdrawals,8000.00
+Fees,3674.35
+Change in market value,-1335.94
+Ending balance,251989.71
+
+Holdings
+Ticker,Name,Asset class,Quantity,Price,Market value,Expense ratio
+SPGAX,Summit Premier Growth Fund A,US Stock,1083.309,41.87,45358.15,1.25%
+TSMIX,Total Stock Market Index Fund,US Stock,529.802,128.42,68037.22,0.04%
+LCIX,Large Cap 500 Index Fund,US Stock,59.049,512.10,30238.77,0.05%
+INTX,International Equity Index Fund,Intl Stock,727.033,34.66,25198.97,0.08%
+AGBX,Aggregate Bond Index Fund,Bond,7706.107,9.81,75596.91,0.05%
+CASH,Cash Sweep,Cash,7559.690,1.00,7559.69,n/a
+
+Transactions
+Date,Description,Amount
+2025-02-14,Deposit,10000.00
+2025-03-12,Sell TSMIX,21150.00
+2025-03-12,Buy SPGAX,20000.00
+2025-03-12,Sales load SPGAX,1150.00
+2025-03-31,Dividend AGBX,812.44
+2025-03-31,Advisory fee,637.51
+2025-06-18,Sell AGBX,6000.00
+2025-06-18,Buy SPGAX,6000.00
+2025-06-30,Dividend TSMIX,655.10
+2025-06-30,Advisory fee,613.49
+2025-08-15,Deposit,5000.00
+2025-09-22,Sell LCIX,4500.00
+2025-09-22,Buy INTX,4500.00
+2025-09-30,Dividend AGBX,798.03
+2025-09-30,Advisory fee,641.80
+2025-11-10,Withdrawal,8000.00
+2025-12-31,Dividend LCIX,702.58
+2025-12-31,Advisory fee,631.55
+
+Account Value History
+Date,Value
+2025-01-01,250000.00
+2025-01-31,243813.72
+2025-02-28,254939.35
+2025-03-31,254365.27
+2025-04-30,255875.30
+2025-05-31,243570.36
+2025-06-30,244781.29
+2025-07-31,249994.78
+2025-08-31,261113.83
+2025-09-30,256079.61
+2025-10-31,263436.38
+2025-11-30,258137.95
+2025-12-31,251989.71
