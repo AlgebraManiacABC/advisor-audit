@@ -9,8 +9,7 @@ of matching risk. It gives information, not advice: it never says to fire an adv
 
 ```bash
 pip install -r requirements-dev.txt          # plus Tesseract: apt-get install tesseract-ocr
-cp .env.example .env                         # add OPENAI_API_KEY for the Akamai endpoint
-set -a; . ./.env; set +a
+cp .env.example .env                         # add OPENAI_API_KEY; the app reads .env itself
 uvicorn advisor_audit.app:app --reload       # http://localhost:8000
 ```
 
@@ -75,7 +74,8 @@ volatility and drawdown), and `holding.load_pct`.
 
 ```bash
 # .env needs OPENAI_API_KEY and DOMAIN (DNS-only A record pointing at the Linode)
-./deploy/deploy.sh root@<linode-ip>
+./deploy/deploy.sh root@<linode-ip>         # bash
+.\deploy\deploy.ps1 root@<linode-ip>         # Windows PowerShell
 ```
 
 This ships `git archive HEAD` and copies `.env` with owner-only permissions. It then runs Docker Compose
