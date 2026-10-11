@@ -70,6 +70,7 @@ def test_model_unreachable_falls_back_to_rules(monkeypatch):
     from advisor_audit import pipeline
 
     monkeypatch.setattr(settings, "model_provider", "akamai")
+    monkeypatch.setattr(settings, "parser_first", False)
     monkeypatch.setattr(settings, "openai_base_url", "http://127.0.0.1:9/v1")
     monkeypatch.setattr(settings, "openai_api_key", "test")
     monkeypatch.setattr(settings, "model_timeout_seconds", 2)

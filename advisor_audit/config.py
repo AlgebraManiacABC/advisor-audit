@@ -44,6 +44,9 @@ class Settings:
     model_timeout_seconds: float = field(default_factory=lambda: float(_env("MODEL_TIMEOUT_SECONDS", "90")))
     # The model sees at most this many characters of redacted statement text.
     max_statement_chars: int = field(default_factory=lambda: int(_env("MAX_STATEMENT_CHARS", "40000")))
+    # Try the built-in parser first and skip the model when its result fully checks out
+    # (seconds instead of minutes). Set PARSER_FIRST=0 to always use the model.
+    parser_first: bool = field(default_factory=lambda: _env("PARSER_FIRST", "1") == "1")
     # If the model fails, fall back to the rules normalizer/explainer.
     rules_fallback: bool = field(default_factory=lambda: _env("RULES_FALLBACK", "1") == "1")
 

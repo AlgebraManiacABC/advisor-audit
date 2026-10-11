@@ -52,6 +52,11 @@ def normalize(text: str, clarification: str | None = None) -> NormalizeOutcome:
         text += f"\n\nThe user clarified: {clarification}"
     notes: list[str] = []
 
+    if _use_model() and settings.parser_first:
+        fast = _parse_fully_checked(text)
+        if fast is not None:
+            return NormalizeOutcome(fast, engine="rules", attempts=0)
+
     if _use_model():
         try:
             return _normalize_model(text, clarification is not None)
@@ -71,6 +76,21 @@ def normalize(text: str, clarification: str | None = None) -> NormalizeOutcome:
         return NormalizeOutcome(s, r["discrepancies"], engine="rules", attempts=1, notes=notes)
     return NormalizeOutcome(s, r["discrepancies"], question=_template_question(r["discrepancies"]),
                             engine="rules", attempts=1, notes=notes)
+
+
+def _parse_fully_checked(text: str) -> Statement | None:
+    """The built-in parser's result, but only if it's complete enough to trust without the model.
+
+    It must reconcile, include holdings (so the ending balance is checked against them), and
+    include the statement's market change (so a missed deposit or fee would show up).
+    """
+    try:
+        s = rules.normalize_rules(text)
+    except rules.ParseError:
+        return None
+    if not s.holdings or s.market_change is None:
+        return None
+    return s if not check_statement(s, text) else None
 
 
 # Thousands separators only when followed by exactly three digits, so CSV commas split fields.

@@ -13,6 +13,9 @@ cp .env.example .env                         # add OPENAI_API_KEY; the app reads
 uvicorn advisor_audit.app:app --reload       # http://localhost:8000
 ```
 
+By default the built-in parser reads the statement first, and the model is only used when the parser's
+result is incomplete or doesn't pass every check. That takes under a second instead of about 1.5 minutes.
+`PARSER_FIRST=0` always uses the model (e.g. to show the agent reading a statement in the demo).
 `MODEL_PROVIDER=rules` runs with no model: a built-in parser for simple labeled statements (it reads
 all the demo samples) and template wording. The app also falls back to it if the model fails.
 

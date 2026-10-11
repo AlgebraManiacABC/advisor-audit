@@ -59,6 +59,7 @@ def good(text):
 @pytest.fixture
 def use_model(monkeypatch):
     monkeypatch.setattr(settings, "model_provider", "akamai")
+    monkeypatch.setattr(settings, "parser_first", False)
 
     def install(script):
         m = ScriptedModel(script)
@@ -129,3 +130,19 @@ def test_correct_statements_pass_the_printed_check(name):
         pytest.skip("no tesseract")
     t = redact(extract_bytes(name, (SAMPLES / name).read_bytes()))[0]
     assert pipeline.unprinted_values(rules.normalize_rules(t), t) == []
+
+
+def test_parser_first_skips_the_model_when_it_checks_out(monkeypatch, use_model, text):
+    monkeypatch.setattr(settings, "parser_first", True)
+    m = use_model([])
+    out = pipeline.normalize(text)
+    assert out.engine == "rules" and out.statement is not None
+    assert m.seen_tools == []  # model never called
+
+
+def test_parser_first_uses_the_model_when_incomplete(monkeypatch, use_model, text, good):
+    monkeypatch.setattr(settings, "parser_first", True)
+    partial = "\n".join(l for l in text.splitlines() if not l.startswith("Change in market value"))
+    m = use_model([("OUT", dict(good, market_change=None))])
+    out = pipeline.normalize(partial)
+    assert out.engine == "model" and len(m.seen_tools) == 1
