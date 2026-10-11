@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Data</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<main class="prose">
+  <p><a href="/">&larr; Back</a></p>
+  <h1>Your data and privacy</h1>
+  <p class="sub">Your statement is read in memory, personal details are stripped out, and nothing is kept after your session ends.</p>
+
+  <section class="card">
+    <h2>What happens to your file</h2>
+    <ul>
+      <li>Your file is read in our server's memory and never saved to disk.</li>
+      <li>We pull the text out of it on our own server, including reading photos. No outside service sees your file.</li>
+      <li>Once the numbers are read, the file and its text are thrown away.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>What's removed before any AI sees it</h2>
+    <p>Before anything goes to the AI model, we strip out:</p>
+    <ul>
+      <li>names, such as the account holder and advisor</li>
+      <li>street addresses</li>
+      <li>account numbers and Social Security numbers</li>
+      <li>email addresses and phone numbers</li>
+    </ul>
+    <p>Fund names, dollar amounts, and dates are kept, since they're what we analyze.</p>
+    <p class="muted">This works by recognizing common patterns, so an unusual layout could let something slip through. If your statement has personal details in odd places, you can black them out before uploading.</p>
+  </section>
+
+  <section class="card">
+    <h2>When the AI model is used</h2>
+    <ul>
+      <li><strong>Reading your statement:</strong> a built-in reader on our server tries first. The AI only sees your statement's text, with personal details removed, if that reader can't make the numbers add up.</li>
+      <li><strong>Writing your summary and questions:</strong> the AI gets our calculated results (amounts, rates, and fund names), never your file.</li>
+      <li><strong>Answering a follow-up question:</strong> if we ask you something, your answer goes through the same personal-detail removal first.</li>
+    </ul>
+    <p>The model runs on Akamai's cloud, not on an AI company's servers. That service is run by Akamai, so we don't control how it logs requests.</p>
+  </section>
+
+  <section class="card">
+    <h2>What we keep, and for how long</h2>
+    <ul>
+      <li>Only the numbers we read (balances, holdings, transactions, fees) and your results, so you can switch risk profiles without re-uploading.</li>
+      <li>They're kept in server memory only. There's no database.</li>
+      <li>They're linked to your browser by one session cookie. There are no accounts or logins.</li>
+      <li>If we ask you a question, the text with personal details removed is kept until you answer.</li>
+    </ul>
+    <p>Everything is deleted when the first of these happens:</p>
+    <ul>
+      <li>you click <strong>Delete my data</strong>, which is immediate</li>
+      <li>30 minutes pass without activity</li>
+      <li>the server restarts</li>
+    </ul>
+    <p>Our server logs record errors and page requests, never statement contents.</p>
+  </section>
+
+  <section class="card">
+    <h2>What we don't do</h2>
+    <ul>
+      <li>We don't sell or share your data.</li>
+      <li>We don't use analytics, ads, or tracking cookies.</li>
+      <li>We don't train AI models on your statement.</li>
+      <li>We don't connect to your brokerage. You choose what to upload.</li>
+    </ul>
+  </section>
+
+  <p class="muted">The sample statements used in our demo are made up: fictional people, accounts, and firm.</p>
+  <p><a class="button" href="/">Back to the check</a></p>
+</main>
+</body>
+</html>

@@ -122,3 +122,26 @@ def test_clarifying_question_when_numbers_dont_add_up(client):
 def test_rejects_bad_input(client):
     assert _upload(client, name="x.exe", data=b"MZ").status_code == 400
     assert _upload(client, profile="yolo").status_code == 400
+
+
+def test_privacy_page_and_shared_styles(client):
+    assert "Delete my data" in client.get("/privacy").text
+    assert client.get("/static/app.css").status_code == 200
+    assert 'href="/privacy"' in client.get("/").text
+
+
+def test_clarification_answer_is_redacted(client, monkeypatch):
+    from advisor_audit import pipeline
+
+    seen = {}
+    real = pipeline.normalize
+
+    def spy(text, clarification=None):
+        seen["c"] = clarification
+        return real(text, clarification)
+
+    monkeypatch.setattr(pipeline, "normalize", spy)
+    bad = (SAMPLES / "statement.csv").read_text().replace("Ending balance,", "Ending balance,1")
+    _upload(client, data=bad.encode())
+    client.post("/api/clarify", data={"answer": "My SSN is 123-45-6789, email pat@example.com"})
+    assert "[SSN]" in seen["c"] and "123-45-6789" not in seen["c"] and "pat@example.com" not in seen["c"]

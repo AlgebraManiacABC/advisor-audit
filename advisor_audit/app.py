@@ -15,10 +15,12 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from . import pipeline
 from .config import BENCHMARK_MIXES, settings
 from .extract import UnsupportedFile
+from .redact import redact
 from .schema import Statement
 
 logging.basicConfig(level=logging.INFO)
@@ -76,9 +78,17 @@ async def no_store(request: Request, call_next):
     return resp
 
 
+app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
+
 @app.get("/")
 def index():
     return FileResponse(STATIC / "index.html")
+
+
+@app.get("/privacy")
+def privacy():
+    return FileResponse(STATIC / "privacy.html")
 
 
 @app.get("/healthz")
@@ -97,8 +107,8 @@ def analyze(request: Request, response: Response, file: UploadFile = File(...), 
         text, counts = pipeline.read_upload(file.filename or "upload", data)
     except UnsupportedFile as e:
         raise HTTPException(400, str(e))
-    except Exception:
-        logging.exception("extract failed")
+    except Exception as e:
+        logging.warning("extract failed: %s", type(e).__name__)  # never log content
         raise HTTPException(400, "We couldn't read that file. Try a PDF, CSV, XLSX, or a clear photo.")
     finally:
         del data
@@ -117,7 +127,7 @@ def clarify(request: Request, response: Response, answer: str = Form(...)):
     if not text:
         raise HTTPException(409, "Nothing is waiting for a clarification. Upload a statement first.")
     sess["clarified"] = True
-    outcome = pipeline.normalize(text, clarification=answer[:500])
+    outcome = pipeline.normalize(text, clarification=redact(answer[:500])[0])
     return _finish(sess, outcome, sess["profile"], text)
 
 

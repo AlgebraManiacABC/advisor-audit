@@ -61,7 +61,7 @@ def normalize(text: str, clarification: str | None = None) -> NormalizeOutcome:
         try:
             return _normalize_model(text, clarification is not None)
         except Exception as e:  # model down, timeout, bad output
-            log.warning("model normalize failed: %s", e)
+            log.warning("model normalize failed: %s", type(e).__name__)  # never log content
             if not settings.rules_fallback:
                 raise
             notes.append("The model was unavailable, so a simpler built-in parser read the statement.")
@@ -196,7 +196,7 @@ def explain(findings: dict) -> tuple[dict, list[str]]:
 
         exp, problems = explain_with_model(findings)
     except Exception as e:
-        log.warning("model explain failed: %s", e)
+        log.warning("model explain failed: %s", type(e).__name__)
         return template, ["The model was unavailable, so the summary uses built-in wording."]
     # Any part that failed the number check falls back to the template.
     for k, v in exp.items():
