@@ -74,8 +74,7 @@ volatility and drawdown), and `holding.load_pct`.
 
 ```bash
 # .env needs OPENAI_API_KEY and DOMAIN (DNS-only A record pointing at the Linode)
-./deploy/deploy.sh root@<linode-ip>         # bash
-.\deploy\deploy.ps1 root@<linode-ip>         # Windows PowerShell
+python deploy/deploy.py root@<linode-ip>
 ```
 
 This ships `git archive HEAD` and copies `.env` with owner-only permissions. It then runs Docker Compose
