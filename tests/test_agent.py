@@ -109,3 +109,23 @@ def test_explanation_with_invented_number_is_replaced(use_model, good):
     assert exp["comparison_summary"] == "Your account trailed the ETF mix."
     assert len(exp["questions"]) == 3
     assert notes
+
+
+def test_computed_values_are_sent_back_then_dropped(use_model, text, good):
+    # The model works out a 5.75% load (1,150 / 20,000) that the statement never prints.
+    computed = json.loads(json.dumps(good))
+    computed["holdings"][0]["load_pct"] = 0.0575
+    m = use_model([("OUT", computed)] * 3)
+    out = pipeline.normalize(text)
+    assert "load_pct = 0.0575" in m.seen_text[1]  # the retry named the unprinted value
+    assert out.statement.holdings[0].load_pct is None
+    assert out.discrepancies == [] and out.question is None
+
+
+@pytest.mark.parametrize("name", ["statement.csv", "statement.xlsx", "statement.pdf", "statement_photo.jpg"])
+def test_correct_statements_pass_the_printed_check(name):
+    import shutil
+    if name.endswith(".jpg") and not shutil.which("tesseract"):
+        pytest.skip("no tesseract")
+    t = redact(extract_bytes(name, (SAMPLES / name).read_bytes()))[0]
+    assert pipeline.unprinted_values(rules.normalize_rules(t), t) == []

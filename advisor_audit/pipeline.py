@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 
 from . import calc, rules
@@ -72,22 +73,79 @@ def normalize(text: str, clarification: str | None = None) -> NormalizeOutcome:
                             engine="rules", attempts=1, notes=notes)
 
 
+# Thousands separators only when followed by exactly three digits, so CSV commas split fields.
+_NUMBER = re.compile(r"\d{1,3}(?:,\d{3})+(?![\d,])(?:\.\d+)?|\d+(?:\.\d+)?")
+
+
+def _printed_numbers(text: str) -> set[float]:
+    return {round(float(m.replace(",", "")), 4) for m in _NUMBER.findall(text)}
+
+
+def unprinted_values(s: Statement, text: str) -> list[tuple[str, float]]:
+    """Numbers in the statement that don't appear in the text. Rates may be printed as percentages."""
+    printed = _printed_numbers(text)
+
+    def ok(v: float) -> bool:
+        return v == 0 or round(abs(v), 4) in printed or round(abs(v) * 100, 4) in printed
+
+    out = [(k, getattr(s, k)) for k in ("starting_balance", "ending_balance", "market_change")
+           if getattr(s, k) is not None and not ok(getattr(s, k))]
+    for h in s.holdings:
+        for k in ("value", "quantity", "expense_ratio", "load_pct"):
+            v = getattr(h, k)
+            if v is not None and not ok(v):
+                out.append((f"{h.ticker or h.name} {k}", v))
+    out += [(f"{t.date} {t.type} amount", t.amount) for t in s.transactions if not ok(t.amount)]
+    out += [(f"{f.date} {f.kind} fee", f.amount) for f in s.fees if not ok(f.amount)]
+    out += [(f"{p.date} balance", p.value) for p in s.balance_history if not ok(p.value)]
+    return out
+
+
+def _drop_unprinted_optional(s: Statement, text: str) -> Statement:
+    """Last resort: clear optional fields the model computed instead of copying."""
+    printed = _printed_numbers(text)
+    ok = lambda v: v is None or v == 0 or round(abs(v), 4) in printed or round(abs(v) * 100, 4) in printed  # noqa: E731
+    s = s.model_copy(deep=True)
+    if not ok(s.market_change):
+        s.market_change = None
+    for h in s.holdings:
+        for k in ("expense_ratio", "load_pct"):
+            if not ok(getattr(h, k)):
+                setattr(h, k, None)
+        if not ok(h.quantity):
+            h.quantity = 0.0
+    return s
+
+
+def check_statement(s: Statement, text: str) -> list[str]:
+    issues = calc.reconcile(s)["discrepancies"]
+    bad = unprinted_values(s, text)
+    if bad:
+        issues.append("These values don't appear anywhere in the statement text: "
+                      + "; ".join(f"{k} = {v:g}" for k, v in bad[:10])
+                      + ". Copy numbers exactly as printed and use null for anything not printed. Never calculate.")
+    return issues
+
+
 def _normalize_model(text: str, final: bool) -> NormalizeOutcome:
     from .agent import Normalizer
 
     n = Normalizer()
     s = n.first(text)
-    r = calc.reconcile(s)
-    while not r["ok"] and n.attempts < settings.max_normalize_attempts:
-        s = n.retry(r["discrepancies"])
-        r = calc.reconcile(s)
-    if r["ok"] or final:
-        return NormalizeOutcome(s, r["discrepancies"], attempts=n.attempts)
+    issues = check_statement(s, text)
+    while issues and n.attempts < settings.max_normalize_attempts:
+        s = n.retry(issues)
+        issues = check_statement(s, text)
+    if issues:
+        s = _drop_unprinted_optional(s, text)
+        issues = check_statement(s, text)
+    if not issues or final:
+        return NormalizeOutcome(s, issues, attempts=n.attempts)
     try:
-        q = n.ask(r["discrepancies"])
+        q = n.ask(issues)
     except Exception:
-        q = _template_question(r["discrepancies"])
-    return NormalizeOutcome(s, r["discrepancies"], question=q, attempts=n.attempts)
+        q = _template_question(issues)
+    return NormalizeOutcome(s, issues, question=q, attempts=n.attempts)
 
 
 def _template_question(discrepancies: list[str]) -> str:
